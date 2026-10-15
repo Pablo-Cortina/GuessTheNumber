@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang='es'>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Guess The Number!</title>
+    <link rel='stylesheet' href='main.css'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: linear-gradient(135deg, #e0e7ff 0%, #fef3c7 100%);
+            --bg-cards: rgba(255, 255, 255, 0.45);
+            --bg-inputs: rgba(255, 255, 255, 0.7);
+            --text-main: #1e293b;
+            --text-secondary: #475569;
+            --shadows: rgba(31, 38, 135, 0.08);
+            --border-color: rgba(255, 255, 255, 0.4);
+            --btn-restart-hover: rgba(255, 255, 255, 0.7);
+            --accent-color: #ea580c;
+            --accent-hover: #c2410c;
+            --glass-blur: blur(12px);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: linear-gradient(135deg, #11141a 0%, #ff7b00 50%, #810602 100%);
+            --bg-cards: rgba(30, 30, 30, 0.55);
+            --bg-inputs: rgba(45, 45, 45, 0.7);
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --shadows: rgba(0, 0, 0, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --btn-restart-hover: rgba(255, 255, 255, 0.08);
+            --accent-color: #f97316;
+            --accent-hover: #ea580c;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Roboto", sans-serif;
+            background: var(--bg-body);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+            transition: background 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .theme-container {
+            grid-column: 1 / 4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 960px;
+        }
+
+        .theme-btn,
+        .dificultad-select {
+            padding: 0.6rem 1.4rem;
+            background: var(--bg-cards);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 32px 0 var(--shadows);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            transition: all 0.3s;
+        }
+
+        .theme-btn:hover,
+        .dificultad-select:hover {
+            background: var(--btn-restart-hover);
+            border-color: var(--accent-color);
+        }
+
+        .dificultad-select {
+            outline: none;
+            font-family: inherit;
+        }
+
+        .dificultad-select option {
+            background-color: var(--bg-inputs);
+            color: var(--text-main);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 300px);
+            justify-content: center;
+            gap: 2rem;
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .info,
+        .juego,
+        .numeros {
+            background: var(--bg-cards);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px 0 var(--shadows);
+            backdrop-filter: var(--glass-blur);
+            transition: background 0.3s, box-shadow 0.3s, border 0.3s;
+            height: 350px;
+            border-radius: 15px;
+            width: 100%;
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .info h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .info p {
+            width: 100%;
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .info strong {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+
+        #btnReinicio {
+            width: 110px;
+            height: 35px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        #btnReinicio:hover {
+            background: var(--btn-restart-hover);
+            border-color: var(--accent-color);
+        }
+
+        .juego {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        #guessNum {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            user-select: none;
+            color: var(--accent-color);
+        }
+
+        #alerta {
+            margin: 0.5rem auto 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            min-height: 55px;
+            border-radius: 10px;
+            box-shadow: inset 0 4px 12px 0 var(--shadows);
+            background: var(--bg-inputs);
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .enunciado {
+            margin-bottom: 0.7rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        #in_guess {
+            width: 65px;
+            height: 38px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-inputs);
+            color: var(--text-main);
+            backdrop-filter: var(--glass-blur);
+        }
+
+        #in_guess:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        #comprobar {
+            width: 110px;
+            height: 38px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px 0 rgba(234, 88, 12, 0.2);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #comprobar:hover {
+            background-color: var(--accent-hover);
+        }
+
+        #comprobar:active {
+            transform: scale(0.97);
+        }
+
+        #comprobar:disabled,
+        #in_guess:disabled {
+            background: var(--btn-restart-hover);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .numeros {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 10px;
+            align-content: flex-start;
+            overflow-y: auto;
+        }
+
+        .numeros::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .numeros::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .numeros::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .numeros h1 {
+            grid-column: 1 / 3;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .numeros p {
+            margin: 0;
+            padding: 0.4rem;
+            background: var(--bg-inputs);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .temp-quemas {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .temp-caliente {
+            color: #ea580c;
+            font-weight: bold;
+        }
+
+        .temp-tibio {
+            color: #b45309;
+            font-weight: bold;
+        }
+
+        .temp-frio {
+            color: #0891b2;
+            font-weight: bold;
+        }
+
+        .temp-congelado {
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .temp-ganaste {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .temp-perdiste {
+            color: #64748b;
+            font-weight: bold;
+        }
+
+        [data-theme="dark"] .temp-quemas {
+            color: #f87171;
+        }
+
+        [data-theme="dark"] .temp-caliente {
+            color: #fb923c;
+        }
+
+        [data-theme="dark"] .temp-tibio {
+            color: #facc15;
+        }
+
+        [data-theme="dark"] .temp-frio {
+            color: #22d3ee;
+        }
+
+        [data-theme="dark"] .temp-congelado {
+            color: #60a5fa;
+        }
+
+        [data-theme="dark"] .temp-ganaste {
+            color: #4ade80;
+        }
+
+        .animacion-derrota {
+            color: #ef4444 !important;
+            display: inline-block;
+            animation: explosionCaida 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes explosionCaida {
+            0% {
+                transform: scale(1) translateY(0);
+                filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0));
+            }
+
+            15% {
+                transform: scale(1.4) translateY(-30px) rotate(-10deg);
+                filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8));
+            }
+
+            30% {
+                transform: scale(1.2) translateY(-40px) rotate(15deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.9) translateY(600px) rotate(45deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .container {
+                grid-template-columns: 300px;
+            }
+
+            .theme-container {
+                max-width: 300px;
+            }
+            
+        }
+
+        footer {
+            margin: 1rem auto;
+            font-size: 0.75rem;
+            font-style: italic;
+            opacity: 0.5;
+            user-select: none;
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        footer a::after,
+        footer a:hover {
+            color: var(--accent-hover);
+        }
+    </style>
+
+
+
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="theme-container">
+            <button id="toggleTheme" class="theme-btn">Modo Claro / Modo Oscuro</button>
+            <select id="dificultad" class="dificultad-select">
+                <option value="facil">Fácil</option>
+                <option value="normal" selected>Normal</option>
+                <option value="dificil">Difícil</option>
+            </select>
+        </div>
+        <div class="info">
+            <h1>Información</h1>
+            <p>Aciertos<br><strong id="aciertos">0</strong></p>
+            <p>Intentos Totales<br><strong id="intentosTotales">0 / 10</strong></p>
+            <p>Intentos Actuales<br><strong id="intentos">0</strong></p>
+            <button id="btnReinicio">Reiniciar</button>
+        </div>
+        <div class="juego">
+            <h1 id="guessNum">?</h1>
+            <div id="alerta">¡Introduce un número para empezar!</div>
+            <label class="enunciado" for="in_guess">Adivina el número del 1 al 100</label>
+            <div class="input-group">
+                <input type="number" id="in_guess" max="100" min="1">
+                <button id="comprobar">Comprobar</button>
+            </div>
+        </div>
+        <div class="numeros">
+            <h1>Números probados</h1>
+        </div>
+    </div>
+    <footer>
+        Hecho por <a href="https://github.com/Pablo-Cortina" target="_blank">Pablo Cortina</a>
+    </footer>
+
+
+    <script>
+        let numeroOculto = Math.ceil(Math.random() * 100);
+        const alerta = document.getElementById('alerta');
+        const aciertos = document.getElementById('aciertos');
+        const intentosTotales = document.getElementById('intentosTotales');
+        const inputGuess = document.getElementById('in_guess');
+        const intentos = document.getElementById('intentos');
+        const boton = document.getElementById('comprobar');
+        const contenedorNumeros = document.querySelector('.numeros');
+        const btnTheme = document.getElementById('toggleTheme');
+
+        const selectDificultad = document.getElementById('dificultad');
+
+        let i = 0;
+        let win = 0;
+        let iTotal = 0;
+        let numerosProbados = [];
+        console.log(numeroOculto);
+
+        let limiteQuemas = 5;
+        let limiteCaliente = 10;
+        let limiteTibio = 15;
+        let limiteFrio = 25;
+
+        if (btnTheme) {
+            btnTheme.onclick = function () {
+                const currentTheme = document.body.getAttribute('data-theme');
+                if (currentTheme === 'dark') {
+                    document.body.removeAttribute('data-theme');
+                } else {
+                    document.body.setAttribute('data-theme', 'dark');
+                }
+            };
+        }
+
+
+        selectDificultad.onchange = function () {
+            let dificultadElegida = selectDificultad.value;
+
+            if (dificultadElegida === "facil") {
+                limiteQuemas = 10;
+                limiteCaliente = 20;
+                limiteTibio = 35;
+                limiteFrio = 50;
+            } else if (dificultadElegida === "normal") {
+                limiteQuemas = 5;
+                limiteCaliente = 10;
+                limiteTibio = 15;
+                limiteFrio = 25;
+            } else if (dificultadElegida === "dificil") {
+                limiteQuemas = 2;
+                limiteCaliente = 4;
+                limiteTibio = 8;
+                limiteFrio = 15;
+            }
+
+            reiniciarJuego();
+        };
+        function comprobarNumero() {
+            let entrada = parseInt(inputGuess.value);
+            if (isNaN(entrada) || entrada > 100 || entrada <= 0) {
+                alerta.innerHTML = 'Introduce un número válido (1-100)';
+                alerta.className = '';
+                return;
+            }
+            if (numerosProbados.includes(entrada)) {
+                alerta.innerHTML = 'Ya has probado ese número';
+                alerta.className = '';
+                inputGuess.value = '';
+                return;
+            }
+
+            numerosProbados.push(entrada);
+            i++;
+            iTotal++;
+            intentos.innerHTML = i + ' / 10';
+            intentosTotales.innerHTML = iTotal;
+
+            let distancia = Math.abs(numeroOculto - entrada);
+            let claseTemperatura = '';
+            let textoFinalAlerta = '';
+
+            if (distancia === 0) {
+                textoFinalAlerta = '¡GANASTE!';
+                document.getElementById('guessNum').innerHTML = numeroOculto;
+                win++;
+                aciertos.innerHTML = win;
+                inputGuess.disabled = true;
+                boton.disabled = true;
+                claseTemperatura = 'temp-ganaste';
+            }
+            else if (i === 10) {
+                textoFinalAlerta = '¡PERDISTE! Sin intentos.';
+
+                const elNumeroOculto = document.getElementById('guessNum');
+                elNumeroOculto.innerHTML = numeroOculto;
+                elNumeroOculto.classList.add('animacion-derrota');
+
+                inputGuess.disabled = true;
+                boton.disabled = true;
+                claseTemperatura = 'temp-perdiste';
+            }
+
+            else if (distancia <= limiteQuemas) {
+                textoFinalAlerta = 'TE QUEMAS';
+                claseTemperatura = 'temp-quemas';
+            } else if (distancia <= limiteCaliente) {
+                textoFinalAlerta = 'CALIENTE';
+                claseTemperatura = 'temp-caliente';
+            } else if (distancia <= limiteTibio) {
+                textoFinalAlerta = 'TIBIO';
+                claseTemperatura = 'temp-tibio';
+            } else if (distancia <= limiteFrio) {
+                textoFinalAlerta = 'FRÍO FRÍO';
+                claseTemperatura = 'temp-frio';
+            } else {
+                textoFinalAlerta = 'CONGELADO';
+                claseTemperatura = 'temp-congelado';
+            }
+
+            alerta.innerHTML = textoFinalAlerta;
+            alerta.className = claseTemperatura;
+
+            let parrafoNumero = document.createElement('p');
+            parrafoNumero.innerHTML = `<strong>${entrada}</strong> <br>(${textoFinalAlerta})`;
+            parrafoNumero.className = claseTemperatura;
+            contenedorNumeros.appendChild(parrafoNumero);
+
+            inputGuess.focus();
+        }
+
+        document.getElementById('comprobar').onclick = comprobarNumero;
+
+        inputGuess.onkeydown = function (e) {
+            if (e.key === "Enter") {
+                comprobarNumero();
+            }
+        };
+
+        function reiniciarJuego() {
+            i = 0;
+            numeroOculto = Math.ceil(Math.random() * 100);
+            console.log(numeroOculto);
+
+            const elNumeroOculto = document.getElementById('guessNum');
+            elNumeroOculto.innerHTML = '?';
+            elNumeroOculto.classList.remove('animacion-derrota');
+
+            intentos.innerHTML = i + ' / 10';
+            inputGuess.value = '';
+            alerta.innerHTML = '¡Introduce un número para empezar!';
+            alerta.className = '';
+
+            inputGuess.disabled = false;
+            boton.disabled = false;
+            contenedorNumeros.innerHTML = '<h1>Números probados</h1>';
+            inputGuess.focus();
+            numerosProbados = []
+        }
+
+        document.getElementById('btnReinicio').onclick = reiniciarJuego;
+    </script>
+
+</body>
+
+</html>
